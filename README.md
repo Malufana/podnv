@@ -57,26 +57,26 @@ O objetivo é fornecer uma estrutura segura para login e controle de acesso a en
 - **Listar despesas por categoria:** Filtrar despesas por categoria específica.
 - **Processar parcelas recorrentes:** Gerenciar despesas parceladas ou recorrentes automaticamente.
 
-## **RECEITA**
+### **RECEITA**
 - **Salvar receita:** Registrar entradas financeiras.
 - **Editar receita:** Alterar informações de uma receita existente.
 - **Deletar receita:** Remover receitas registradas.
 - **Listar todas as receitas:** Exibir todas as receitas cadastradas.
 
-## **ORÇAMENTO**
+### **ORÇAMENTO**
 - **Salvar orçamento:** Registrar orçamentos por categoria.
 - **Editar orçamento:** Alterar valores ou categorias de um orçamento existente.
 - **Deletar orçamento:** Remover orçamentos cadastrados.
 - **Calcular orçamento por categoria:** Analisar quanto foi planejado e quanto foi gasto em cada categoria.
 - **Saldo restante do orçamento:** Calcular quanto ainda pode ser gasto por categoria.
 
-## **CATEGORIAS**
+### **CATEGORIAS**
 - **Salvar categoria:** Criar novas categorias de despesas ou receitas.
 - **Listar todas as categorias por usuário:** Visualizar categorias específicas de cada usuário.
 - **Editar categoria:** Alterar informações de uma categoria existente.
 - **Deletar categoria:** Remover categorias cadastradas.
 
-## **USUÁRIOS**
+### **USUÁRIOS**
 - **Salvar usuário:** Registrar novos usuários na plataforma.
 - **Buscar usuário por ID:** Consultar dados de um usuário específico.
 - **Listar todos os usuários:** Exibir todos os usuários cadastrados.
