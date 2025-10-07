@@ -1,6 +1,6 @@
 package podnv.service;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import podnv.dto.OrcamentoDTO;
 import podnv.model.Categoria;
@@ -15,22 +15,25 @@ import java.math.RoundingMode;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class OrcamentoService {
     private final OrcamentoRepository orcamentoRepository;
     private final UsuarioRepository usuarioRepository;
     private final CategoriaRepository categoriaRepository;
 
+    public OrcamentoService(OrcamentoRepository orcamentoRepository, UsuarioRepository usuarioRepository, CategoriaRepository categoriaRepository) {
+        this.orcamentoRepository = orcamentoRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.categoriaRepository = categoriaRepository;
+    }
+
     @Transactional
-    public Orcamento salvarOrcamento(Long usuarioId, OrcamentoDTO dto){
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+    public Orcamento salvarOrcamento(OrcamentoDTO dto){
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
 
-        Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
-                .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+        Categoria categoria = categoriaRepository.findByIdAndUsuario_Id(dto.getCategoriaId(), usuario.getId());
 
-
-        if(orcamentoRepository.findByUsuarioIdAndCategoriaId(usuarioId, dto.getCategoriaId()).isPresent()){
+        if(orcamentoRepository.findByUsuarioIdAndCategoriaId(usuario.getId(), dto.getCategoriaId()).isPresent()){
             throw new RuntimeException("Orçamento para esta categoria já existe");
         }
 
@@ -44,12 +47,14 @@ public class OrcamentoService {
     }
 
     @Transactional
-    public Orcamento editarOrcamento(Long usuarioId, Long id, OrcamentoDTO dto){
-        Orcamento orcamento = orcamentoRepository.findByIdAndUsuarioId(id, usuarioId)
+    public Orcamento editarOrcamento(Long id, OrcamentoDTO dto){
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        Orcamento orcamento = orcamentoRepository.findByIdAndUsuarioId(id, usuario.getId())
                 .orElseThrow(() -> new RuntimeException("Orçamento não encontrado"));
 
-        Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
-                .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+        Categoria categoria = categoriaRepository.findByIdAndUsuario_Id(dto.getCategoriaId(), usuario.getId());
 
         if(dto.getCategoriaId() != null){
             orcamento.setCategoria(categoria);
@@ -62,21 +67,30 @@ public class OrcamentoService {
     }
 
     @Transactional
-    public void deletarOrcamento(Long usuarioId, Long id){
-        Orcamento orcamento = orcamentoRepository.findByIdAndUsuarioId(id, usuarioId)
+    public void deletarOrcamento(Long id){
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        Orcamento orcamento = orcamentoRepository.findByIdAndUsuarioId(id, usuario.getId())
                         .orElseThrow(() -> new RuntimeException("Orçamento não encontrado"));
         orcamentoRepository.delete(orcamento);
     }
 
-    public List<Orcamento> listarTodos(Long usuarioId){
-        return orcamentoRepository.findByUsuarioId(usuarioId);
+    public List<Orcamento> listarTodos(){
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        return orcamentoRepository.findByUsuarioId(usuario.getId());
     }
 
-    public Orcamento calcularOrcamentoPorCategoria(Long usuarioId, Long categoriaId){
-        Orcamento orcamento = orcamentoRepository.findByUsuarioIdAndCategoriaId(usuarioId, categoriaId)
+    public Orcamento calcularOrcamentoPorCategoria(Long categoriaId){
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        Orcamento orcamento = orcamentoRepository.findByUsuarioIdAndCategoriaId(usuario.getId(), categoriaId)
                 .orElseThrow(() -> new RuntimeException("Orçamento não encontrado"));
 
-        BigDecimal totalDespesas = orcamentoRepository.sumDespesasByUsuarioIdAndCategoriaId(usuarioId, categoriaId);
+        BigDecimal totalDespesas = orcamentoRepository.sumDespesasByUsuarioIdAndCategoriaId(usuario.getId(), categoriaId);
 
         orcamento.setConsumido(totalDespesas);
 
@@ -92,8 +106,8 @@ public class OrcamentoService {
         return orcamento;
     }
 
-    public BigDecimal saldoRestante(Long usuarioId, Long categoriaId){
-        Orcamento orcamento = calcularOrcamentoPorCategoria(usuarioId, categoriaId);
+    public BigDecimal saldoRestante(Long categoriaId){
+        Orcamento orcamento = calcularOrcamentoPorCategoria(categoriaId);
         return orcamento.getValor().subtract(orcamento.getConsumido());
     }
 }

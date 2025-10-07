@@ -1,27 +1,28 @@
 package podnv.service;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import podnv.dto.ReceitaDTO;
 import podnv.model.Receita;
 import podnv.model.Usuario;
 import podnv.repository.ReceitaRepository;
-import podnv.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class ReceitaService {
     private final ReceitaRepository receitaRepository;
-    private final UsuarioRepository usuarioRepository;
+
+    public ReceitaService(ReceitaRepository receitaRepository) {
+        this.receitaRepository = receitaRepository;
+    }
 
     @Transactional
-    public Receita salvarReceita(Long usuarioId, ReceitaDTO dto){
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+    public Receita salvarReceita(ReceitaDTO dto){
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
 
-        if(receitaRepository.existsByNomeAndUsuario_Id(dto.getNome(), usuarioId)){
+        if(receitaRepository.existsByNomeAndUsuario_Id(dto.getNome(), usuario.getId())){
             throw new IllegalArgumentException("Já existe uma receita com esse nome");
         }
 
@@ -37,12 +38,15 @@ public class ReceitaService {
     }
 
     @Transactional
-    public Receita editarReceita(Long usuarioId, Long id, ReceitaDTO dto){
-        Receita receita = receitaRepository.findByIdAndUsuarioId(id, usuarioId)
+    public Receita editarReceita(Long id, ReceitaDTO dto){
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        Receita receita = receitaRepository.findByIdAndUsuarioId(id, usuario.getId())
                         .orElseThrow(() -> new RuntimeException("Receita não encontrada"));
 
         if(!receita.getNome().equals(dto.getNome()) &&
-            receitaRepository.existsByNomeAndUsuario_Id(dto.getNome(), usuarioId)){
+            receitaRepository.existsByNomeAndUsuario_Id(dto.getNome(), usuario.getId())){
             throw new IllegalArgumentException("Já existe uma receita com esse nome");
         }
         if(dto.getNome() != null){
@@ -62,13 +66,19 @@ public class ReceitaService {
     }
 
     @Transactional
-    public void deletarReceita(Long usuarioId, Long id){
-        Receita receita = receitaRepository.findByIdAndUsuarioId(id, usuarioId)
+    public void deletarReceita(Long id){
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        Receita receita = receitaRepository.findByIdAndUsuarioId(id, usuario.getId())
                         .orElseThrow(() -> new RuntimeException("Receita não encontrada"));
         receitaRepository.delete(receita);
     }
 
-    public List<Receita> listarTodos(Long usuarioId){
-        return receitaRepository.findByUsuarioId(usuarioId);
+    public List<Receita> listarTodos(){
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        return receitaRepository.findByUsuarioId(usuario.getId());
     }
 }

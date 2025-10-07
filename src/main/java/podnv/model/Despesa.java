@@ -33,6 +33,10 @@ public class Despesa {
     private String descricao;
     private boolean recorrente;
     private LocalDate data;
+
+    @Column(name = "parcelas_totais")
     private Integer parcelasTotais;
+
+    @Column(name = "parcelas_restante")
     private Integer parcelasRestantes;
 }

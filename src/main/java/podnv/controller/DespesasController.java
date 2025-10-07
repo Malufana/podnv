@@ -17,54 +17,54 @@ import java.util.List;
 public class DespesasController {
     private final DespesaService despesaService;
 
-    @PostMapping("/usuario/{usuarioId}")
-    public ResponseEntity<Despesa> salvarDespesa(@PathVariable Long usuarioId, @RequestBody DespesaDTO dto){
+    @PostMapping
+    public ResponseEntity<Despesa> salvarDespesa(@RequestBody DespesaDTO dto){
         Despesa despesa = despesaService.salvarDespesa(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(despesa);
     }
 
-    @PatchMapping("/usuario/{usuarioId}/{id}")
-    public ResponseEntity<Despesa> editarDespesa(@PathVariable Long usuarioId, @PathVariable Long id, @RequestBody DespesaDTO dto){
-        Despesa despesa = despesaService.editarDespesa(usuarioId, id, dto);
+    @PatchMapping("/{id}")
+    public ResponseEntity<Despesa> editarDespesa(@PathVariable Long id, @RequestBody DespesaDTO dto){
+        Despesa despesa = despesaService.editarDespesa(id, dto);
         return ResponseEntity.ok(despesa);
     }
 
-    @DeleteMapping("/usuario/{usuarioId}/{id}")
-    public ResponseEntity<Void> deletarDespesa(@PathVariable Long usuarioId, @PathVariable Long id){
-        despesaService.deletarDespesa(usuarioId, id);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletarDespesa(@PathVariable Long id){
+        despesaService.deletarDespesa(id);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<List<Despesa>> listarTodos(@PathVariable Long usuarioId){
-        return ResponseEntity.ok(despesaService.listarTodos(usuarioId));
+    @GetMapping
+    public ResponseEntity<List<Despesa>> listarTodos(){
+        return ResponseEntity.ok(despesaService.listarTodos());
     }
 
-    @GetMapping("/usuario/{usuarioId}/categoria/{categoriaId}/mes/{anoMes}")
-    public ResponseEntity<BigDecimal> calcularGastoPorCategoriaNoMes(@PathVariable Long usuarioId, @PathVariable Long categoriaId, @PathVariable YearMonth anoMes){
-        BigDecimal gasto = despesaService.calcularGastoPorCategoriaNoMes(usuarioId, categoriaId, anoMes);
+    @GetMapping("/categoria/{categoriaId}/mes/{anoMes}")
+    public ResponseEntity<BigDecimal> calcularGastoPorCategoriaNoMes(@PathVariable Long categoriaId, @PathVariable YearMonth anoMes){
+        BigDecimal gasto = despesaService.calcularGastoPorCategoriaNoMes(categoriaId, anoMes);
         return ResponseEntity.ok(gasto);
     }
 
-    @GetMapping("/usuario/{usuarioId}/mes/{anoMes}")
-    public ResponseEntity<BigDecimal> calcularTotalGastoNoMes(@PathVariable Long usuarioId, @PathVariable YearMonth anoMes){
-        BigDecimal total = despesaService.calcularTotalGastoNoMes(usuarioId, anoMes);
+    @GetMapping("/mes/{anoMes}")
+    public ResponseEntity<BigDecimal> calcularTotalGastoNoMes(@PathVariable YearMonth anoMes){
+        BigDecimal total = despesaService.calcularTotalGastoNoMes(anoMes);
         return ResponseEntity.ok(total);
     }
 
-    @GetMapping("/usuario/{usuarioId}/mes/{anoMes}/listar")
-    public ResponseEntity<List<Despesa>> listarDespesasNoMes(@PathVariable Long usuarioId, @PathVariable YearMonth anoMes){
-        return ResponseEntity.ok(despesaService.listarDepesasNoMes(usuarioId, anoMes));
+    @GetMapping("/mes/{anoMes}/listar")
+    public ResponseEntity<List<Despesa>> listarDespesasNoMes(@PathVariable YearMonth anoMes){
+        return ResponseEntity.ok(despesaService.listarDepesasNoMes(anoMes));
     }
 
-    @GetMapping("/usuario/{usuarioId}/categoria/{categoriaId}/mes/{anoMes}/listar")
-    public ResponseEntity<List<Despesa>> listarDespesasPorCategoria(@PathVariable Long usuarioId, @PathVariable Long categoriaId, @PathVariable YearMonth anoMes){
-        return ResponseEntity.ok(despesaService.listarDepesasPorCategoria(usuarioId, categoriaId, anoMes));
+    @GetMapping("/categoria/{categoriaId}/mes/{anoMes}/listar")
+    public ResponseEntity<List<Despesa>> listarDespesasPorCategoria(@PathVariable Long categoriaId, @PathVariable YearMonth anoMes){
+        return ResponseEntity.ok(despesaService.listarDepesasPorCategoria(categoriaId, anoMes));
     }
 
-    @GetMapping("/usuario/{usuarioId}/processar-parcelas/{anoMes}")
-    public ResponseEntity<Void> processarParcelasRecorrentes(@PathVariable Long usuarioId, @PathVariable YearMonth anoMes){
-        despesaService.processarParcelasRecorrentes(usuarioId, anoMes);
+    @GetMapping("/processar-parcelas/{anoMes}")
+    public ResponseEntity<Void> processarParcelasRecorrentes(@PathVariable YearMonth anoMes){
+        despesaService.processarParcelasRecorrentes(anoMes);
         return ResponseEntity.ok().build();
     }
 }

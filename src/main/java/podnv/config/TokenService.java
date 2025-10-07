@@ -22,6 +22,7 @@ public class TokenService {
             var algoritmo = Algorithm.HMAC256(secret);
             return JWT.create()
                     .withIssuer("PODNV")
+                    .withClaim("name", usuario.getNome())
                     .withSubject(usuario.getEmail())
                     .withClaim("id", usuario.getId())
                     .withExpiresAt(dataExpiracao())

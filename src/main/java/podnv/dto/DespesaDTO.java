@@ -1,7 +1,6 @@
 package podnv.dto;
 
 import lombok.*;
-import podnv.model.Categoria;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -15,10 +14,10 @@ public class DespesaDTO {
     private Long usuarioId;
     private String nome;
     private BigDecimal valor;
-    private Categoria categoria;
+    private Long categoriaId;
     private String descricao;
     private boolean recorrente;
     private LocalDate data;
     private Integer parcelasTotais;
-    private Integer parcelasRestantes;
+    private Integer parcelasRestante;
 }

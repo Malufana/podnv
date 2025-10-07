@@ -1,11 +1,12 @@
 package podnv.service;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import podnv.dto.DespesaDTO;
 import podnv.model.Categoria;
 import podnv.model.Despesa;
 import podnv.model.Usuario;
+import podnv.repository.CategoriaRepository;
 import podnv.repository.DespesaRepository;
 import podnv.repository.UsuarioRepository;
 import java.math.BigDecimal;
@@ -14,32 +15,46 @@ import java.util.List;
 import jakarta.transaction.Transactional;
 
 @Service
-@RequiredArgsConstructor
 public class DespesaService {
     private final DespesaRepository despesaRepository;
+    private final CategoriaRepository categoriaRepository;
     private final UsuarioRepository usuarioRepository;
+
+    public DespesaService(DespesaRepository despesaRepository, CategoriaRepository categoriaRepository, UsuarioRepository usuarioRepository) {
+        this.despesaRepository = despesaRepository;
+        this.categoriaRepository = categoriaRepository;
+        this.usuarioRepository = usuarioRepository;
+    }
 
     @Transactional
     public Despesa salvarDespesa(DespesaDTO dto){
-        Usuario usuario = usuarioRepository.findById(dto.getUsuarioId())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        Categoria categoria = categoriaRepository.findByIdAndUsuario_Id(dto.getCategoriaId(), usuario.getId());
 
         Despesa despesa = Despesa.builder()
+                .nome(dto.getNome())
                 .valor(dto.getValor())
                 .descricao(dto.getDescricao())
-                .categoria(dto.getCategoria())
+                .categoria(categoria)
                 .data(dto.getData())
                 .recorrente(dto.isRecorrente())
                 .parcelasTotais(dto.getParcelasTotais())
-                .parcelasRestantes(dto.getParcelasRestantes() != null ? dto.getParcelasRestantes() : dto.getParcelasTotais())
+                .parcelasRestantes(dto.getParcelasRestante() != null ? dto.getParcelasRestante() : dto.getParcelasTotais())
                 .usuario(usuario)
                 .build();
         return despesaRepository.save(despesa);
     }
 
     @Transactional
-    public Despesa editarDespesa(Long usuarioId, Long id, DespesaDTO dto){
-        Despesa despesa = despesaRepository.findByIdAndUsuario_Id(id, usuarioId)
+    public Despesa editarDespesa(Long id, DespesaDTO dto){
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        Categoria categoria = categoriaRepository.findByIdAndUsuario_Id(dto.getCategoriaId(), usuario.getId());
+
+        Despesa despesa = despesaRepository.findByIdAndUsuario_Id(id, usuario.getId())
                         .orElseThrow(() -> new RuntimeException("Despesa não encontrada"));
 
         if(dto.getValor() != null){
@@ -48,8 +63,8 @@ public class DespesaService {
         if(dto.getDescricao() != null){
             despesa.setDescricao(dto.getDescricao());
         }
-        if(dto.getCategoria() != null){
-            despesa.setCategoria(dto.getCategoria());
+        if(categoria.getId() != null){
+            despesa.setCategoria(categoria);
         }
         if(dto.getData() != null){
             despesa.setData(dto.getData());
@@ -58,24 +73,33 @@ public class DespesaService {
             despesa.setParcelasTotais(dto.getParcelasTotais());
         }
 
-        despesa.setParcelasRestantes(dto.getParcelasRestantes() != null ? dto.getParcelasRestantes() : dto.getParcelasTotais());
+        despesa.setParcelasRestantes(dto.getParcelasRestante() != null ? dto.getParcelasRestante() : dto.getParcelasTotais());
         return despesaRepository.save(despesa);
     }
 
     @Transactional
-    public void deletarDespesa(Long usuarioId, Long id){
-        Despesa despesa = despesaRepository.findByIdAndUsuario_Id(id, usuarioId)
+    public void deletarDespesa(Long id){
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        Despesa despesa = despesaRepository.findByIdAndUsuario_Id(id, usuario.getId())
                 .orElseThrow(() -> new RuntimeException("Despesa não encontrada"));
         despesaRepository.delete(despesa);
     }
 
-    public List<Despesa> listarTodos(Long usuarioId){
-        return despesaRepository.findByUsuarioId(usuarioId);
+    public List<Despesa> listarTodos(){
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        return despesaRepository.findByUsuarioId(usuario.getId());
     }
 
-    public BigDecimal calcularGastoPorCategoriaNoMes(Long usuarioId, Long categoriaId, YearMonth mes){
+    public BigDecimal calcularGastoPorCategoriaNoMes(Long categoriaId, YearMonth mes){
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
         List<Despesa> despesas = despesaRepository.findByUsuario_IdAndCategoria_IdAndDataBetween(
-                usuarioId,
+                usuario.getId(),
                 categoriaId,
                 mes.atDay(1),
                 mes.atEndOfMonth()
@@ -85,9 +109,12 @@ public class DespesaService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public BigDecimal calcularTotalGastoNoMes(Long usuarioId, YearMonth mes){
+    public BigDecimal calcularTotalGastoNoMes(YearMonth mes){
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
         List<Despesa> despesas = despesaRepository.findByUsuarioIdAndDataBetween(
-                usuarioId,
+                usuario.getId(),
                 mes.atDay(1),
                 mes.atEndOfMonth()
         );
@@ -96,17 +123,23 @@ public class DespesaService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public List<Despesa> listarDepesasNoMes(Long usuarioId, YearMonth mes){
+    public List<Despesa> listarDepesasNoMes(YearMonth mes){
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
         return despesaRepository.findByUsuarioIdAndDataBetween(
-                usuarioId,
+                usuario.getId(),
                 mes.atDay(1),
                 mes.atEndOfMonth()
         );
     }
 
-    public List<Despesa> listarDepesasPorCategoria(Long usuarioId, Long categoriaId, YearMonth mes){
+    public List<Despesa> listarDepesasPorCategoria(Long categoriaId, YearMonth mes){
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
         return despesaRepository.findByUsuario_IdAndCategoria_IdAndDataBetween(
-                usuarioId,
+                usuario.getId(),
                 categoriaId,
                 mes.atDay(1),
                 mes.atEndOfMonth()
@@ -114,9 +147,13 @@ public class DespesaService {
     }
 
     @Transactional
-    public void processarParcelasRecorrentes(Long usuarioId, YearMonth mesAtual){
+    public void processarParcelasRecorrentes(YearMonth mesAtual){
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
         List<Despesa> despesas = despesaRepository.findByUsuarioIdAndRecorrenteTrueAndParcelasRestantesGreaterThan(
-                usuarioId, 0);
+                usuario.getId(), 0);
+
         for(Despesa despesa : despesas){
             if(YearMonth.from(despesa.getData()).isBefore(mesAtual)){
                 Despesa novaParcela = Despesa.builder()

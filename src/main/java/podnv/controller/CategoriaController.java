@@ -15,26 +15,26 @@ import java.util.List;
 public class CategoriaController {
     private final CategoriaService categoriaService;
 
-    @PostMapping("/usuario/{usuarioId}")
-    public ResponseEntity<Categoria> salvarCategoria(@PathVariable Long usuarioId, @RequestBody CategoriaDTO dto){
-        Categoria categoria = categoriaService.salvarCategoria(usuarioId, dto);
+    @PostMapping
+    public ResponseEntity<Categoria> salvarCategoria(@RequestBody CategoriaDTO dto){
+        Categoria categoria = categoriaService.salvarCategoria(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(categoria);
     }
 
-    @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<List<Categoria>> listarTodos(@PathVariable Long usuarioId){
-        return ResponseEntity.ok(categoriaService.listarTodos(usuarioId));
+    @GetMapping
+    public ResponseEntity<List<Categoria>> listarTodos(){
+        return ResponseEntity.ok(categoriaService.listarTodos());
     }
 
-    @PatchMapping("/usuario/{usuarioId}/{id}")
-    public ResponseEntity<Categoria> editarCategoria(@PathVariable Long usuarioId, @PathVariable Long id, @RequestBody CategoriaDTO dto){
-        Categoria categoria = categoriaService.editarCategoria(usuarioId, id, dto);
+    @PatchMapping("/{id}")
+    public ResponseEntity<Categoria> editarCategoria( @PathVariable Long id, @RequestBody CategoriaDTO dto){
+        Categoria categoria = categoriaService.editarCategoria(id, dto);
         return ResponseEntity.ok(categoria);
     }
 
-    @DeleteMapping("/usuario/{usuarioId}/{id}")
-    public ResponseEntity<Void> deletarCategoria(@PathVariable Long usuarioId, @PathVariable Long id){
-        categoriaService.deletarCategoria(usuarioId, id);
+    @DeleteMapping(" /{id}")
+    public ResponseEntity<Void> deletarCategoria(@PathVariable Long id){
+        categoriaService.deletarCategoria(id);
         return ResponseEntity.noContent().build();
     }
 }

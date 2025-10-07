@@ -1,6 +1,5 @@
 package podnv.controller;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,30 +10,33 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/receita")
-@RequiredArgsConstructor
 public class ReceitaController {
     private final ReceitaService receitaService;
 
-    @PostMapping("/usuario/{usuarioId}")
-    public ResponseEntity<Receita> salvarReceita(@PathVariable Long usuarioId, @RequestBody ReceitaDTO dto){
-        Receita receita = receitaService.salvarReceita(usuarioId, dto);
+    public ReceitaController(ReceitaService receitaService) {
+        this.receitaService = receitaService;
+    }
+
+    @PostMapping
+    public ResponseEntity<Receita> salvarReceita(@RequestBody ReceitaDTO dto){
+        Receita receita = receitaService.salvarReceita(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(receita);
     }
 
-    @PatchMapping("/usuario/{usuarioId}/{id}")
-    public ResponseEntity<Receita> editarReceita(@PathVariable Long usuarioId, @PathVariable Long id, @RequestBody ReceitaDTO dto){
-        Receita receita = receitaService.editarReceita(usuarioId, id, dto);
+    @PatchMapping("/{id}")
+    public ResponseEntity<Receita> editarReceita(@PathVariable Long id, @RequestBody ReceitaDTO dto){
+        Receita receita = receitaService.editarReceita(id, dto);
         return ResponseEntity.ok(receita);
     }
 
-    @DeleteMapping("/usuario/{usuarioId}/{id}")
-    public ResponseEntity<Void> deletarReceita(@PathVariable Long usuarioId, @PathVariable Long id){
-        receitaService.deletarReceita(usuarioId, id);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletarReceita(@PathVariable Long id){
+        receitaService.deletarReceita(id);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<List<Receita>> listarTodos(@PathVariable Long usuarioId){
-        return ResponseEntity.ok(receitaService.listarTodos(usuarioId));
+    @GetMapping
+    public ResponseEntity<List<Receita>> listarTodos(){
+        return ResponseEntity.ok(receitaService.listarTodos());
     }
 }
