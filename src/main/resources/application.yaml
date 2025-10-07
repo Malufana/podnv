@@ -1,6 +1,13 @@
 server:
   port: 9090
 
+spring:
+  datasource:
+    url: ${URL}
+    username: ${USERNAME}
+    password: ${PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
 api:
   security:
     token:
